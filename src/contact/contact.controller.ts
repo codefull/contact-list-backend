@@ -21,7 +21,7 @@ export class ContactController {
 
   @Get(':id')
   getContact(@Param('id') contactId: string): Contact {
-    const contact = this.getContact(contactId);
+    const contact = this.contactsService.getSingleContact(contactId);
     return { ...contact };
   }
 
