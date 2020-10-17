@@ -1,0 +1,18 @@
+version: '3.3'
+services:
+
+  # service for postgresql database
+  db_pg:
+    image: postgres:10-alpine
+    container_name: whitetower_db_pg
+    environment:
+      - POSTGRES_PASSWORD=1qw2w3e4r5t6y7u8i9o0p
+      - POSTGRES_USER=wtpostgres    
+      - POSTGRES_DB=wt_contactlist
+    ports:
+      - 5432:5432
+    networks: 
+      - backend
+
+networks: 
+  backend:
