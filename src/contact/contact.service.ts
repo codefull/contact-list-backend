@@ -1,49 +1,68 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Contact } from './contact.model';
+import { ContactEntity } from './model/contact.entity';
 
 @Injectable()
 export class ContactService {
-  contacts: Contact[] = [];
+  constructor(
+    @InjectRepository(ContactEntity)
+    private contactRepository: Repository<ContactEntity>,
+  ) {}
 
-  getAllContacts(): Contact[] {
-    return this.contacts;
+  async getAllContacts(): Promise<Contact[]> {
+    const db_contacts = await this.contactRepository.find();
+    const result = db_contacts.map(c => new Contact().fromEntity(c));
+
+    return result;
   }
 
-  getSingleContact(contactId: string): Contact {
-    const contact = this.findContact(contactId)[0];
-    return { ...contact };
+  async getSingleContact(contactId: string): Promise<Contact> {
+    const contact = await this.findContact(contactId);
+    return new Contact().fromEntity(contact);
   }
 
-  findContact(contactId: string): [Contact, number] {
-    const contactIndex = this.contacts.findIndex(c => c.id === contactId);
-    const contact = this.contacts[contactIndex];
+  async findContact(contactId: string): Promise<ContactEntity> {
+    const contact = await this.contactRepository.findOne({ id: contactId });
     if (!contact) {
       throw new NotFoundException('Contact not found');
     }
-    return [contact, contactIndex];
+    return contact;
   }
 
-  insertContact(name: string, address: string, email: string, phone: string) {
-    const newContact = new Contact(
-      new Date().toString(),
-      name,
-      address,
-      phone,
-      email,
-    );
-    const generatedID = this.contacts.push(newContact);
+  async insertContact(name: string, address: string, email: string, phone: string, avatar:string) {
+    const contact = await this.contactRepository.findOne({ email });
+    if (contact) {
+      throw new HttpException('Contact given email already exists!', HttpStatus.BAD_REQUEST);
+    }
+    const newContact = new ContactEntity();
+    newContact.name = name;
+    newContact.address = address;
+    newContact.email = email;
+    newContact.phone = phone;
+    newContact.avatar = avatar; 
 
-    return { id: generatedID };
+    const res = await this.contactRepository.save(newContact)
+
+    return { id: res.id };
   }
 
-  updateContact(
+  async updateContact(
     contactId: string,
     name: string,
     address: string,
     email: string,
     phone: string,
-  ): Contact {
-    const [contact, index] = this.findContact(contactId);
+    avatar: string
+  ): Promise<Contact> {
+    
+    const contact = await this.findContact(contactId);
 
     if (name) {
       contact.name = name;
@@ -57,14 +76,17 @@ export class ContactService {
     if (phone) {
       contact.phone = phone;
     }
+    if (avatar) {
+      contact.avatar = avatar;
+    }
 
-    this.contacts[index] = contact;
-    return contact;
+    const res = await this.contactRepository.save(contact)
+    return new Contact().fromEntity(res);
   }
 
-  deleteContact(contactId: string): Contact {
-    const [, index] = this.findContact(contactId);
-    const result = this.contacts.splice(index, 1);
-    return result[0];
+  async deleteContact(contactId: string): Promise<Contact> {
+    const contact = await this.findContact(contactId);
+    const result = await this.contactRepository.remove(contact);
+    return new Contact().fromEntity(result);
   }
 }
