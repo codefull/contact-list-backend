@@ -13,6 +13,8 @@ import { Response } from 'express';
 import { ContactService } from './contact.service';
 import { Contact } from './contact.model';
 
+
+// localhost:3000/contact
 @Controller('contact')
 export class ContactController {
   constructor(private readonly contactsService: ContactService) {}
@@ -21,7 +23,7 @@ export class ContactController {
   async getContacts(): Promise<Contact[]> {
     return this.contactsService.getAllContacts();
   }
-
+// localhost:3000/contact/:id
   @Get(':id')
   async getContact(
     @Param('id') contactId: string,
