@@ -36,19 +36,28 @@ export class ContactService {
     return contact;
   }
 
-  async insertContact(name: string, address: string, email: string, phone: string, avatar:string) {
+  async insertContact(
+    name: string,
+    address: string,
+    email: string,
+    phone: string,
+    avatar: string,
+  ) {
     const contact = await this.contactRepository.findOne({ email });
     if (contact) {
-      throw new HttpException('Contact given email already exists!', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Contact given email already exists!',
+        HttpStatus.BAD_REQUEST,
+      );
     }
     const newContact = new ContactEntity();
     newContact.name = name;
     newContact.address = address;
     newContact.email = email;
     newContact.phone = phone;
-    newContact.avatar = avatar; 
+    newContact.avatar = avatar;
 
-    const res = await this.contactRepository.save(newContact)
+    const res = await this.contactRepository.save(newContact);
 
     return { id: res.id };
   }
@@ -59,29 +68,33 @@ export class ContactService {
     address: string,
     email: string,
     phone: string,
-    avatar: string
+    avatar: string,
   ): Promise<Contact> {
-    
-    const contact = await this.findContact(contactId);
+    try {
+      const contact = await this.findContact(contactId);
 
-    if (name) {
-      contact.name = name;
-    }
-    if (address) {
-      contact.address = address;
-    }
-    if (email) {
-      contact.address = address;
-    }
-    if (phone) {
-      contact.phone = phone;
-    }
-    if (avatar) {
-      contact.avatar = avatar;
-    }
+      if (name) {
+        contact.name = name;
+      }
+      if (address) {
+        contact.address = address;
+      }
+      if (email) {
+        contact.address = address;
+      }
+      if (phone) {
+        contact.phone = phone;
+      }
+      if (avatar) {
+        contact.avatar = avatar;
+      }
 
-    const res = await this.contactRepository.save(contact)
-    return new Contact().fromEntity(res);
+      const res = await this.contactRepository.save(contact);
+      return new Contact().fromEntity(res);
+    } catch (error) {
+      
+      console.log(JSON.stringify(error));
+    }
   }
 
   async deleteContact(contactId: string): Promise<Contact> {
