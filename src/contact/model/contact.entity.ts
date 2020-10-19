@@ -15,6 +15,6 @@ export class ContactEntity extends BaseEntity {
   @Column({ type: 'varchar', length: 300, nullable:false })
   phone: string;
 
-  @Column({ nullable: false })
+  @Column({type: 'varchar', nullable: false })
   avatar?: string;
 }
